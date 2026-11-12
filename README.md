@@ -8,7 +8,8 @@ Project and binary name: `theremin_project`.
 
 The MyST book starts at [docs/index.md](docs/index.md), with chapters for
 hardware, firmware/source files, calibration, and verification. Its configuration
-is [myst.yml](myst.yml). In PowerShell from this folder:
+is [myst.yml](myst.yml), with chapter order in [toc.yml](toc.yml), following the
+[TU Delft starterkit](https://github.com/TUD-JB-OS/starterkit). In PowerShell from this folder:
 
 ```powershell
 .\docs.cmd install
@@ -22,6 +23,14 @@ The first build/preview downloads the theme and needs internet access.
 See [Editing and publishing this book](docs/writing.md) for equivalent npm commands,
 adding pages/figures, and GitHub Pages setup. Documentation builds are separate
 from ESP-IDF and do not flash or change the instrument.
+
+The included [deployment workflow](.github/workflows/deploy.yml) adapts TU Delft's
+Pages publishing approach, using the same locked MyST version as local builds.
+It builds HTML only. Enable **GitHub Actions** under
+the repository's **Settings > Pages**, then commit and push the documentation
+changes to `main`. The expected address is https://YaonanH.github.io/Theremin/.
+No `npx` initialization command is needed. Use `npm.cmd` or `npx.cmd` when invoking
+those tools directly from PowerShell, which may otherwise select blocked `.ps1` scripts.
 
 ## Wiring
 

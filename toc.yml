@@ -1,0 +1,9 @@
+version: 1
+project:
+  toc:
+    - file: docs/index.md
+    - file: docs/hardware.md
+    - file: docs/firmware.md
+    - file: docs/calibration.md
+    - file: docs/testing.md
+    - file: docs/writing.md

@@ -1,17 +1,20 @@
 version: 1
 
 project:
+  github: https://github.com/YaonanH/Theremin
   title: ESP32 Theremin
   subtitle: Hardware, firmware, and web calibration
   description: Documentation for the ESP-IDF theremin prototype using pulse counters and the internal ESP32 DAC.
   keywords: [ESP32, theremin, ESP-IDF, pulse counter, calibration]
-  toc:
-    - file: docs/index.md
-    - file: docs/hardware.md
-    - file: docs/firmware.md
-    - file: docs/calibration.md
-    - file: docs/testing.md
-    - file: docs/writing.md
+
+# Follow the TU Delft starterkit's separate table-of-contents configuration.
+extends:
+  - toc.yml
 
 site:
   template: book-theme
+  options:
+    favicon: docs/figures/favicon.svg
+    # The current theme duplicates BASE_URL in the home breadcrumb on Pages.
+    # Keep navigation in the book sidebar and previous/next links.
+    hide_breadcrumbs: true

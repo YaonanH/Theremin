@@ -1,0 +1,56 @@
+# Adapted from the TU Delft starterkit's Pages publishing approach.
+# https://github.com/TUD-JB-OS/starterkit/tree/bf0e6d36df07c8982d423d24a69d8e3775a91a3e
+# Build locally and on GitHub with the same locked MyST version.
+name: Deploy documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'myst.yml'
+      - 'toc.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  BASE_URL: /${{ github.event.repository.name }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked documentation dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build documentation
+        run: npm run docs:build
+      - name: Upload HTML artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./_build/html
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
