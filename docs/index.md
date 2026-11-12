@@ -19,6 +19,7 @@ flowchart TB
 
 | Function | Current implementation |
 | --- | --- |
+| Oscillator assembly | 5 V supply, three CD4093BE packages and one CD4070BE package shared across pitch and volume |
 | Sensor inputs | Two buffered 0-3.3 V square waves, nominally 100-300 kHz |
 | Frequency measurement | Two hardware pulse counters sampled every 10 ms |
 | Sound generation | Sine synthesis at nominal 48 kHz through the internal 8-bit DAC |

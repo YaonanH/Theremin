@@ -12,6 +12,12 @@ affinity, and ESP-IDF defaults.
 
 ## Hardware and software overview
 
+The external pitch and volume circuits share four IC packages powered at 5 V,
+using three CD4093BE devices and one CD4070BE. The hardware chapter records the
+individual gate allocation and antenna/reference/XOR signal paths. The ESP32
+measurement boundary expects conditioned 0-3.3 V signals.
+[Oscillator hardware and wiring](hardware.md)
+
 | Resource | Use in this prototype |
 | --- | --- |
 | CPU | Original dual-core ESP32, with both cores enabled and a configured CPU frequency of 160 MHz |
@@ -25,8 +31,8 @@ affinity, and ESP-IDF defaults.
 
 ```{mermaid}
 flowchart TB
-    Pitch[Pitch oscillator]
-    Volume[Volume oscillator]
+    Pitch[Conditioned pitch sensor signal]
+    Volume[Conditioned volume sensor signal]
     Browser[Browser on phone or laptop]
     Output[GPIO25 - filter, amplifier, speaker]
     subgraph ESP32[ESP32 firmware]

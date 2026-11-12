@@ -4,6 +4,11 @@ ESP-IDF 6.1 (this workspace), original ESP32/WROOM-32. Both oscillator outputs m
 0-3.3 V square waves, 100-300 kHz. No Raspberry Pi or external DAC is used.
 Project and binary name: `theremin_project`.
 
+The pitch and volume oscillator assembly runs at **5 V** and uses **four IC
+packages** in total, with three CD4093BE and one CD4070BE. The hardware chapter
+records the shared gate allocation and signal paths from the supplied schematics.
+[Oscillator hardware](docs/hardware.md)
+
 ## Documentation website
 
 The MyST book covers hardware, ESP32 technical architecture, source files,
