@@ -1,0 +1,17 @@
+version: 1
+
+project:
+  title: ESP32 Theremin
+  subtitle: Hardware, firmware, and web calibration
+  description: Documentation for the ESP-IDF theremin prototype using pulse counters and the internal ESP32 DAC.
+  keywords: [ESP32, theremin, ESP-IDF, pulse counter, calibration]
+  toc:
+    - file: docs/index.md
+    - file: docs/hardware.md
+    - file: docs/firmware.md
+    - file: docs/calibration.md
+    - file: docs/testing.md
+    - file: docs/writing.md
+
+site:
+  template: book-theme

@@ -1,0 +1,12 @@
+{
+  "name": "esp32-theremin-docs",
+  "private": true,
+  "description": "MyST documentation tooling for the ESP32 theremin firmware",
+  "scripts": {
+    "docs:dev": "myst start",
+    "docs:build": "myst build --html --strict"
+  },
+  "devDependencies": {
+    "mystmd": "1.12.0"
+  }
+}

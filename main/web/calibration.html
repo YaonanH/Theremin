@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Theremin · Calibration</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/calibration.css">
+  <script src="/calibration.js" defer></script>
+</head>
+<body>
+<main class="calibration-page">
+  <header>
+    <a class="brand" id="back-home" href="/"><span class="brand-mark" aria-hidden="true">∿</span> THEREMIN</a>
+    <span class="connection" id="cal-connection" data-state="waiting" role="status">Connecting…</span>
+  </header>
+  <section class="intro calibration-intro">
+    <p class="eyebrow">MAKE IT YOURS</p>
+    <h1>Find your range.</h1>
+    <p class="description">Choose how the instrument responds to your hands. Each capture gives you three seconds to get in position, then one second to hold still.</p>
+    <div class="live-strip" aria-label="Detected oscillator frequencies"><span id="live-pitch">Pitch: —</span><span id="live-volume">Volume: —</span></div>
+  </section>
+  <div class="message" id="cal-message" role="status" aria-live="polite" tabindex="-1">Connecting to the instrument…</div>
+  <button type="button" class="button" id="start-session" hidden>Start calibration</button>
+  <form id="calibration-form">
+  <fieldset id="calibration-fields" disabled>
+    <section class="cal-section volume-section" aria-labelledby="volume-title">
+      <div class="section-title"><span class="step-number">1</span><div><h2 id="volume-title">Volume</h2><p>Far is loud. Close is quiet.</p></div></div>
+      <div class="endpoint-grid">
+        <div class="endpoint">
+          <label for="volume-max">Highest volume <span class="field-unit">%</span></label>
+          <input id="volume-max" type="number" min="0" max="100" step="0.1" value="100" required>
+          <p>Position your hand as far from the volume antenna as you want your playing range to reach.</p>
+          <button type="button" class="button capture-button" id="capture-volume-far">Capture far position</button>
+          <output id="endpoint-volume-far">Not captured</output>
+        </div>
+        <div class="endpoint">
+          <label for="volume-min">Lowest volume <span class="field-unit">%</span></label>
+          <input id="volume-min" type="number" min="0" max="100" step="0.1" value="0" required>
+          <p>Position your hand close to the volume antenna. Choose 0% for silence at this position.</p>
+          <button type="button" class="button capture-button" id="capture-volume-near">Capture close position</button>
+          <output id="endpoint-volume-near">Not captured</output>
+        </div>
+      </div>
+      <p class="section-note" id="volume-ceiling">100% uses the instrument's configured maximum output.</p>
+    </section>
+    <section class="cal-section pitch-section" aria-labelledby="pitch-title">
+      <div class="section-title"><span class="step-number">2</span><div><h2 id="pitch-title">Pitch</h2><p>Far is low. Close is high.</p></div></div>
+      <div class="endpoint-grid">
+        <div class="endpoint">
+          <label for="pitch-min">Lowest note</label><select id="pitch-min" required></select>
+          <p>Position your hand far from the pitch antenna, at the edge of your desired playing range.</p>
+          <button type="button" class="button capture-button" id="capture-pitch-far">Capture far position</button>
+          <output id="endpoint-pitch-far">Not captured</output>
+        </div>
+        <div class="endpoint">
+          <label for="pitch-max">Highest note</label><select id="pitch-max" required></select>
+          <p>Position your hand close to the pitch antenna, where you want to reach your highest note.</p>
+          <button type="button" class="button capture-button" id="capture-pitch-near">Capture close position</button>
+          <output id="endpoint-pitch-near">Not captured</output>
+        </div>
+      </div>
+    </section>
+    <section class="cal-section curves-section" aria-labelledby="curves-title">
+      <div class="section-title"><span class="step-number">3</span><div><h2 id="curves-title">Response curves</h2><p>Shape the response between your captured positions.</p></div></div>
+      <div class="endpoint-grid">
+        <div class="curve-control">
+          <label for="pitch-curve">Pitch response</label>
+          <select id="pitch-curve"><option value="musical">Musical · equal note intervals</option><option value="linear">Linear · equal frequency intervals</option></select>
+          <svg viewBox="0 0 320 140" role="img" aria-label="Pitch response from low at the far position to high at the close position"><path class="graph-axis" d="M20 12 V115 H305"/><path id="pitch-path" class="graph-line" d="M20 115 L305 15"/><text x="20" y="136">Far · low</text><text x="305" y="136" text-anchor="end">Close · high</text></svg>
+        </div>
+        <div class="curve-control">
+          <label for="volume-curve">Volume response</label>
+          <select id="volume-curve"><option value="quadratic">Quadratic · gradual fade</option><option value="linear">Linear · even level change</option></select>
+          <svg viewBox="0 0 320 140" role="img" aria-label="Volume response from maximum at the far position to minimum at the close position"><path class="graph-axis" d="M20 12 V115 H305"/><path id="volume-path" class="graph-line volume-line" d="M20 15 L305 115"/><text x="20" y="136">Far · loud</text><text x="305" y="136" text-anchor="end">Close · quiet</text></svg>
+        </div>
+      </div>
+      <p class="section-note">These curves use the captured sensor range. They do not measure hand distance in centimetres.</p>
+    </section>
+  </fieldset>
+  </form>
+  <div class="cal-actions">
+    <div class="action-message"><strong id="preview-state">Saved settings are playing.</strong><span id="validation-note">Capture all four positions to continue.</span></div>
+    <div class="action-buttons">
+      <button type="button" class="button subtle" id="cancel-calibration">Cancel</button>
+      <button type="button" class="button" id="preview-calibration" disabled>Preview</button>
+      <button type="button" class="button primary" id="save-calibration" disabled>Save calibration</button>
+    </div>
+  </div>
+  <footer><span>Preview is temporary. Save to keep your calibration.</span><span>Disconnected previews expire after 45 seconds.</span></footer>
+  <noscript><p class="notice">Enable JavaScript to calibrate the instrument.</p></noscript>
+</main>
+<dialog id="capture-dialog" class="capture-dialog" aria-labelledby="capture-title" aria-describedby="capture-instruction">
+  <p class="eyebrow" id="capture-context">HAND POSITION</p>
+  <h2 id="capture-title" tabindex="-1" autofocus>Starting capture</h2>
+  <p id="capture-instruction" class="capture-instruction">Preparing the instrument…</p>
+  <div class="capture-countdown" id="capture-countdown" aria-hidden="true">…</div>
+  <p class="capture-status" id="capture-status" role="status" aria-live="polite">Preparing capture</p>
+  <progress id="capture-progress" max="100" value="0" aria-label="Capture progress"></progress>
+  <div class="capture-reading">
+    <span id="capture-frequency-label">Live oscillator frequency</span>
+    <strong id="capture-frequency" aria-live="off">—</strong>
+    <span id="capture-signal">Waiting for readings</span>
+  </div>
+  <p id="capture-live-summary" class="capture-live-summary" hidden></p>
+  <p id="capture-detail" class="capture-detail">The result will stay here until you dismiss it.</p>
+  <div class="capture-dialog-actions">
+    <button type="button" class="button subtle" id="capture-cancel">Cancel capture</button>
+    <button type="button" class="button" id="capture-retry" hidden>Try again</button>
+    <button type="button" class="button primary" id="capture-done" hidden>Done</button>
+  </div>
+</dialog>
+</body>
+</html>

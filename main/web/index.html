@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Theremin · Live readings</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/dashboard.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a class="brand" href="/" aria-label="Theremin home"><span class="brand-mark" aria-hidden="true">∿</span> THEREMIN</a>
+      <span class="connection" id="connection" data-state="waiting" role="status">Connecting…</span>
+    </header>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">YOUR INSTRUMENT, LIVE</p>
+      <h1 id="page-title">See what your<br>antennas hear.</h1>
+      <p class="description">Move your hand near either antenna to watch its oscillator frequency change.</p>
+      <a class="calibration-link" href="/calibration">Calibrate your instrument <span aria-hidden="true">→</span></a>
+    </section>
+    <section class="readings" aria-label="Measured oscillator frequencies">
+      <article class="sensor pitch">
+        <div class="card-heading"><h2>Pitch antenna</h2><span class="signal" id="pitch-state" data-state="waiting">Waiting</span></div>
+        <p class="frequency"><span id="pitch-hz">—</span><span class="unit">Hz</span></p>
+        <div class="sensor-footer"><span>Measured input</span><span>GPIO 34</span></div>
+      </article>
+      <article class="sensor volume">
+        <div class="card-heading"><h2>Volume antenna</h2><span class="signal" id="volume-state" data-state="waiting">Waiting</span></div>
+        <p class="frequency"><span id="volume-hz">—</span><span class="unit">Hz</span></p>
+        <div class="sensor-footer"><span>Measured input</span><span>GPIO 35</span></div>
+      </article>
+    </section>
+    <section class="output" aria-labelledby="output-title">
+      <div class="output-intro"><p class="eyebrow">AUDIO TARGET</p><h2 id="output-title">From movement to sound</h2><p>Calculated settings, not a measurement of the speaker.</p></div>
+      <dl class="output-values">
+        <div><dt>Pitch</dt><dd id="audio-hz">—</dd></div>
+        <div><dt>Digital gain</dt><dd id="audio-gain">—</dd></div>
+      </dl>
+    </section>
+    <footer><span id="mode">Reading instrument mode…</span><span id="update-note">Waiting for the ESP32</span></footer>
+    <noscript><p class="notice">Enable JavaScript to see live readings from the ESP32.</p></noscript>
+  </main>
+</body>
+</html>
