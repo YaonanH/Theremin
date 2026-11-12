@@ -1,179 +1,123 @@
-# Editing and publishing this book
+# Editing and publishing
 
-## Project layout
+The documentation uses MyST Markdown with `book-theme`, following the TU Delft
+starterkit's chapter and navigation structure. [TU Delft starterkit](https://github.com/TUD-JB-OS/starterkit)
 
-The firmware and documentation live together so that a code change can include
-its explanation in the same revision:
+## Files to edit
 
-```text
-theremin_project/
-  main/                 ESP32 firmware and embedded control interface
-  tests/                Firmware host checks
-  docs/                 Book chapters
-    figures/            Project photos and diagrams
-  myst.yml              Book metadata and theme
-  toc.yml               Chapter order, following the TU Delft starterkit
-  .github/workflows/    GitHub Pages workflow adapted from the TU Delft approach
-  package.json          Documentation commands and pinned MyST dependency
-  package-lock.json     Resolved documentation dependencies
-  docs.cmd              Windows command wrapper
-  README.md             Quick setup and firmware instructions
-```
+| Path | Purpose |
+| --- | --- |
+| `docs/index.md` | Website home page |
+| `docs/*.md` | Documentation chapters |
+| `docs/figures/` | Photos, schematics, and other figures |
+| `toc.yml` | Sidebar order and chapter hierarchy |
+| `myst.yml` | Book title, repository URL, theme, and site options |
+| `package.json`, `package-lock.json` | Documentation commands and locked dependencies |
+| `docs.cmd` | Windows helper for installation, preview, and build |
+| `.github/workflows/deploy.yml` | GitHub Pages build and deployment |
 
-`_build/`, `node_modules/`, and the optional `.docs-tools/` runtime are generated
-local files, excluded from version control. The documentation is not embedded in
-the ESP32 and does not change the firmware's CMake build.
+## Preview locally
 
-## Install and preview
-
-Install Node.js LTS with npm if it is not already installed. In PowerShell at the
-project root, run:
+Open PowerShell in the project folder and run the installation command once, or
+after dependency changes. Then start the preview.
 
 ```powershell
 .\docs.cmd install
 .\docs.cmd preview
 ```
 
-The wrapper uses Node.js from PATH, or the project-local runtime under
-`.docs-tools/` when available. It does not download a runtime itself. The `.cmd`
-wrapper works from PowerShell or Command Prompt. Alternatively, use the npm
-commands in a terminal with Node.js and npm on PATH:
+Open the address printed in the terminal, usually **http://localhost:3000**.
+Keep the terminal running while editing and press Ctrl+C to stop the server.
+The first run needs internet access to download the book theme and libraries.
+
+The helper finds Node.js on PATH or uses the optional runtime in `.docs-tools/`.
+Install Node.js LTS with npm if neither is available. When Node.js is on PATH,
+the equivalent commands are available directly.
 
 ```powershell
 npm.cmd ci --ignore-scripts --no-audit --no-fund
 npm.cmd run docs:dev
 ```
 
-Open the local address printed by MyST, usually **http://localhost:3000**.
-Keep the terminal running while editing; press Ctrl+C to stop. The first preview
-or HTML build needs internet access to download the book theme and its libraries.
-Connect to an internet-capable network for this step.
+PowerShell can select `npm.ps1` or `npx.ps1` and report that running scripts is
+disabled. The explicit `.cmd` extension selects the Windows command wrapper.
 
-## Build static HTML
+## Add or update a chapter
+
+1. Edit a Markdown file under `docs/`, or create a new one with a descriptive
+   top-level heading.
+2. Add new chapter paths to `project.toc` in `toc.yml`.
+3. Use relative links between chapters, such as `[Hardware](hardware.md)`.
+4. Update descriptions and configuration values when the implementation changes.
+5. Preview the result and run the HTML build.
+
+Place actual figure files in `docs/figures/` before adding their references.
+The following example shows the syntax for a project photo.
+
+````markdown
+```{figure} figures/prototype.jpg
+:alt: ESP32 connected to the oscillator buffers and audio amplifier
+:name: prototype-photo
+
+The assembled theremin prototype.
+```
+````
+
+Mermaid diagrams are stored directly in the Markdown source. Edit the diagram's
+nodes and arrows when the data flow changes. Attribute reused figures and
+include units and test conditions on measurement plots.
+
+## Build the website
 
 ```powershell
 .\docs.cmd build
 ```
 
-With Node.js and npm on PATH, the equivalent is:
+The command generates HTML in `_build/html/` with strict MyST validation. Resolve
+reported documentation warnings before publishing. `_build/`, `node_modules/`,
+and `.docs-tools/` are ignored generated directories.
 
-```powershell
-npm.cmd run docs:build
-```
+## Publish to GitHub Pages
 
-The command builds HTML under `_build/html/` and enables strict checking so MyST
-warnings must be resolved. Serve the generated directory with a static web server
-when checking a production build; use the preview command for ordinary writing.
+The repository includes the deployment workflow and uses Node.js 24 with locked
+MyST 1.12.0 dependencies for local and GitHub builds. It publishes HTML when
+documentation or configuration changes are pushed to `main`.
 
-## Add a chapter
-
-1. Create a Markdown file under `docs/`, beginning with a descriptive `# Heading`.
-2. Add its path to `project.toc` in `toc.yml` at the intended sidebar position.
-3. Link to related chapters using relative Markdown links, such as
-   `[Hardware](hardware.md)`.
-4. Preview the page and run the strict HTML build before committing.
-
-The project home page is `docs/index.md`. Keep claims tied to the implementation
-or recorded measurements. Update the file-summary table in `docs/firmware.md`
-when responsibilities or filenames change.
-
-## Add figures
-
-Put original photos and schematics in `docs/figures/`, using descriptive filenames.
-After adding the actual file, include it in a chapter with a MyST figure:
-
-````markdown
-```{figure} figures/prototype.jpg
-:alt: ESP32 prototype connected to two oscillators and an amplifier
-:name: prototype-photo
-
-The assembled prototype, with pitch and volume input buffers visible.
-```
-````
-
-This example filename is illustrative; add the file before using the directive.
-Include units and test conditions on plots. Attribute external figures and check
-their reuse terms. The home page's system diagram is written as Mermaid source,
-so it can be edited without exporting a bitmap.
-
-## Publish with GitHub Pages
-
-The project is connected to [YaonanH/Theremin](https://github.com/YaonanH/Theremin).
-The included `.github/workflows/deploy.yml` adapts the Pages publishing approach
-of the [TU Delft starterkit](https://github.com/TUD-JB-OS/starterkit). There is no
-need to run `myst init --gh-pages`.
-
-The starterkit delegates to `TUD-JB-OS/deploy`. The reviewed version of that shared
-publisher (`aac8cc664247081f43161bea0d93fa8bab99fc00`) installs MyST 1.11.0.
-That version failed with the current cached theme on this Windows setup. This
-project therefore includes its own HTML-only Pages workflow using Node.js 24 and
-the same locked MyST 1.12.0 dependency as local builds. It retains the starterkit's
-`book-theme`, separate table of contents, and Pages publication pattern. PDF and
-notebook execution steps can be added when the report requires them.
-
-To publish:
-
-1. Open [repository Pages settings](https://github.com/YaonanH/Theremin/settings/pages).
-2. Set **Build and deployment > Source** to **GitHub Actions**.
-3. Commit and push these files from the project root:
+1. Set **Build and deployment > Source** to **GitHub Actions** in the repository's
+   Pages settings. [Pages settings](https://github.com/YaonanH/Theremin/settings/pages)
+2. Commit the documentation changes and push them to `main`.
 
    ```powershell
-   git add .github/workflows/deploy.yml myst.yml toc.yml package.json package-lock.json README.md docs/writing.md docs/figures/favicon.svg
+   git add docs toc.yml myst.yml README.md
    git diff --cached
-   git commit -m "Configure TU Delft documentation deployment"
+   git commit -m "Update theremin documentation"
    git push origin main
    ```
 
-4. Open the repository's **Actions** tab and check **Deploy documentation**.
-5. Open the URL reported by the successful deployment, expected to be
-   **https://YaonanH.github.io/Theremin/**.
+3. Check the **Deploy documentation** run. The workflow also supports **Run
+   workflow** from its Actions page. [Workflow runs](https://github.com/YaonanH/Theremin/actions)
+4. Open the URL reported by a successful deployment. The expected address is
+   [ESP32 Theremin documentation](https://YaonanH.github.io/Theremin/).
 
-The workflow runs when documentation/configuration changes are pushed to `main`.
-After the workflow has been pushed, **Actions > Deploy documentation > Run workflow**
-also starts a build manually. The included publisher sets
-`BASE_URL` to `/Theremin` for this project; that subpath makes its assets resolve
-under GitHub Pages. Local preview continues to use the root path.
+The workflow sets `BASE_URL` to `/Theremin` so that navigation and assets resolve
+under the repository's Pages address. Local preview uses the root path.
 
-For a different repository, update `project.github` in `myst.yml` and the URLs in
-this guide. Keep the branch in the deployment workflow aligned with that repository.
+### Pages setup error
 
-## PowerShell script-policy error
+If **Configure Pages** reports **Get Pages site failed** with **Not Found**, open
+the repository's Pages settings and select **GitHub Actions** as the publishing
+source. Then rerun the failed job. A plan or repository-policy message on that
+screen identifies any additional setup requirement.
 
-PowerShell can select `npx.ps1` or `npm.ps1` instead of the Windows command
-wrappers. If it reports that running scripts is disabled, invoke `npx.cmd` or
-`npm.cmd` explicitly, or use `docs.cmd` for the existing local build/preview
-commands. No execution-policy change is needed.
+### Attribution and reference material
 
-For example, this command is useful only if you intentionally want MyST to
-generate a different workflow; the TU Delft workflow is already included here:
-
-```powershell
-npx.cmd --no-install myst init --gh-pages
-```
-
-When using the optional project-local Node.js runtime, first put its directory on
-the current terminal's PATH, as `docs.cmd` does automatically:
-
-```powershell
-$env:PATH = "$PWD\.docs-tools\node-v24.22.3-win-x64;$env:PATH"
-```
-
-## References and inspiration
+The publishing setup adapts the TU Delft starterkit approach from revision
+`bf0e6d36df07c8982d423d24a69d8e3775a91a3e`. Its README gives the book's
+Creative Commons Attribution-NonCommercial 4.0 license. This project's workflow
+installs its locked MyST dependency directly so local and hosted builds use the
+same version. [Starterkit source](https://github.com/TUD-JB-OS/starterkit/tree/bf0e6d36df07c8982d423d24a69d8e3775a91a3e)
 
 - [MyST quickstart](https://mystmd.org/guide/quickstart)
 - [MyST table of contents](https://mystmd.org/guide/table-of-contents)
 - [MyST GitHub Pages deployment](https://mystmd.org/guide/deployment-github-pages)
-- [TU Delft starterkit](https://github.com/TUD-JB-OS/starterkit)
-- [TU Delft shared publisher](https://github.com/TUD-JB-OS/deploy/blob/aac8cc664247081f43161bea0d93fa8bab99fc00/.github/workflows/jboss.yml)
 - [Example theremin thesis](https://ingeschmidt.github.io/Thesis_ISS_SP/)
-- [Example source repository](https://github.com/IngeSchmidt/Thesis_ISS_SP)
-
-The TU Delft starterkit uses MyST with `book-theme`, separate chapter files, a
-`toc.yml`, and a shared deployment workflow. Its README states that the book is
-licensed under Creative Commons Attribution-NonCommercial 4.0. The publishing
-configuration here is adapted from starterkit revision
-`bf0e6d36df07c8982d423d24a69d8e3775a91a3e`; the theremin chapters are original
-project documentation. Template sample authors, thesis metadata, and university
-branding have not been copied into this project. PDF export, author metadata,
-custom branding, and bibliography configuration can be added when the report
-needs them.

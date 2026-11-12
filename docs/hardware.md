@@ -1,31 +1,32 @@
 # Hardware and wiring
 
-## Board and sensor inputs
+Use an original ESP32/WROOM-32 development board. Feed each sensor input from a
+buffered 0-3.3 V oscillator output in the nominal 100-300 kHz range. Connect the
+oscillator buffers and audio amplifier to a common ground.
 
-Use an original ESP32/WROOM-32 with its internal DAC on GPIO25. The firmware
-explicitly rejects other ESP-IDF targets. Both oscillator outputs must be buffered
-0–3.3 V square waves, nominally 100–300 kHz.
+## Pin connections
 
 | Signal | ESP32 GPIO | Connection |
 | --- | --- | --- |
-| Pitch oscillator | 34 | Buffered oscillator OUT through 220 ohms |
-| Volume oscillator | 35 | Buffered oscillator OUT through 220 ohms |
-| Audio DAC1 | 25 | Filter, coupling capacitor, and attenuation below |
-| Calibration reminder | 27 | Optional normally-open button to GND; internal pull-up |
-| Ground | GND | Common with the oscillator buffers and amplifier |
+| Pitch oscillator | 34 | Buffered square-wave output through 220 ohms |
+| Volume oscillator | 35 | Buffered square-wave output through 220 ohms |
+| Audio DAC1 | 25 | Filter, coupling capacitor, and input trim shown below |
+| Calibration reminder button | 27 | Optional normally-open button to GND |
+| Ground | GND | Common with oscillator buffers and amplifier |
 
-These numbers identify GPIOs, not module pad positions. GPIO34 and GPIO35 have no
-internal pull resistors. An optional external 100 kohm pull-down on each input
-defines a disconnected signal as low. Do not leave the inputs floating during a
-disconnection test, and do not connect an antenna or LC tank directly to a GPIO.
+Use the GPIO labels when locating pins on the development board. GPIO34 and
+GPIO35 require external pull resistors if disconnected inputs need a defined
+level. A 100 kohm pull-down from each input to GND supports disconnection tests.
+Connect antenna and LC tank nodes to their oscillator/buffer circuits, and
+connect only the buffered outputs to the ESP32.
 
-The GPIO27 button currently prints a reminder to open web calibration. It does
-not capture a hand position.
+GPIO27 uses its internal pull-up. Pressing its button prints a reminder to open
+the web calibration page.
 
-## Audio path
+## DAC, filter, and amplifier
 
-The present prototype uses an internal DAC, an analog filter and coupling stage,
-and a PAM8302A amplifier breakout:
+The prototype feeds a PAM8302A amplifier breakout through a filter, coupling
+capacitor, and potentiometer.
 
 ```text
 GPIO25 -- 1k --+-- 1uF nonpolar -- top of 10k potentiometer
@@ -34,37 +35,40 @@ GPIO25 -- 1k --+-- 1uF nonpolar -- top of 10k potentiometer
               |
              GND
 
-Pot bottom -> GND
-Pot wiper  -> amplifier A+
-Amplifier A- -> GND
-
+Pot bottom    -> GND
+Pot wiper     -> amplifier A+
+Amplifier A-  -> GND
 Amplifier VIN -> regulated 5 V
 Amplifier GND -> common GND
-Speaker -> amplifier OUT+ and OUT-
+Speaker       -> amplifier OUT+ and OUT-
 ```
 
-Neither speaker terminal connects to ground. This wiring assumes an amplifier
-breakout; inspect the module because it may already include input capacitors or
-an input trim. Capacitor markings are **223** for 22 nF and **105** for 1 uF.
+Keep both speaker terminals connected to the amplifier outputs and isolated from
+ground. Check the breakout's existing coupling capacitors and trim before adding
+equivalent components. Capacitor markings are **223** for 22 nF and **105** for
+1 uF.
 
-Power the ESP32 development board through USB and use a suitable regulated 5 V
-supply for the amplifier. Do not power the amplifier from the ESP32 3.3 V pin.
-Keep speaker wiring and amplifier supply returns away from oscillator wiring.
+Power the ESP32 development board through USB and the amplifier from a suitable
+regulated 5 V supply. Keep speaker wiring and amplifier supply returns away from
+the oscillator wiring.
 
-## Setting the output level
+## Output level
 
-Start with the amplifier's analog input trim low. `AUDIO_MAX_GAIN` caps digital
-amplitude, and the calibration page's percentages are relative to that cap.
-They are not percentages of acoustic loudness or speaker power.
+Start with the amplifier input trim low. The potentiometer sets analog input
+attenuation. Hand position controls digital gain while playing.
 
-An 8-bit DAC has limited resolution at low digital gain. The current conversion
-rounds very small sine amplitudes to midpoint silence, approximately below gain
-0.004. Analog attenuation lets the DAC use more of its range while controlling
-the amplifier input level. Check the actual circuit before raising digital gain.
+`AUDIO_MAX_GAIN` sets the firmware's amplitude ceiling. Calibration volume
+percentages scale that ceiling. Acoustic loudness also depends on amplifier
+gain, supply, speaker, and analog attenuation.
 
-## Photos and schematics
+The internal DAC has 8-bit resolution. With the current sample conversion,
+digital gains below approximately 0.004 round a sine wave to midpoint silence.
+Analog attenuation allows a larger digital signal while controlling the level
+at the amplifier input.
 
-Add original project photos, oscillator schematics, and wiring diagrams under
-`docs/figures/` as they become available. The [editing guide](writing.md) explains
-how to include them with captions. This starter does not substitute an unverified
-oscillator schematic for your actual hardware.
+## Hardware records
+
+Store project photos, oscillator schematics, and wiring diagrams in
+`docs/figures/`. Include board/module identifiers and component values so another
+reader can reproduce the setup. The editing chapter describes figure captions
+and references. [Editing and publishing](writing.md)

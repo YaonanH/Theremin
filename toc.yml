@@ -3,6 +3,7 @@ project:
   toc:
     - file: docs/index.md
     - file: docs/hardware.md
+    - file: docs/architecture.md
     - file: docs/firmware.md
     - file: docs/calibration.md
     - file: docs/testing.md

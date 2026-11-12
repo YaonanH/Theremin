@@ -1,64 +1,45 @@
 # ESP32 Theremin
 
-This project is a two-antenna theremin prototype built around an original
-ESP32/WROOM-32. Two external oscillators provide frequency signals. The ESP32
-measures them, maps hand positions to musical pitch and volume, and generates a
-sine wave through its internal DAC. A local Wi-Fi interface displays readings and
-captures calibration points.
+The prototype turns hand movements near two antennas into pitch and volume.
+External oscillators convert the antenna response into frequency signals. An
+ESP32/WROOM-32 measures those signals, generates sine-wave audio, and hosts a
+Wi-Fi dashboard for live readings and calibration.
 
 ## System overview
 
 ```{mermaid}
 flowchart TB
-    P[Pitch antenna and external oscillator] --> PC[GPIO34: pulse counter]
-    V[Volume antenna and external oscillator] --> VC[GPIO35: pulse counter]
-    PC --> M[10 ms snapshots and signal validation]
-    VC --> M
-    M --> F[Filtering and calibrated mapping]
-    F --> A[Sine synthesis and DAC DMA]
-    A --> D[GPIO25: filter and input trim]
-    D --> S[PAM8302A amplifier and speaker]
-    M --> W[Local Wi-Fi dashboard]
-    W --> C[Web calibration commands]
-    C --> F
-    C --> N[Saved profile in NVS flash]
-    N --> F
+    Pitch[Pitch antenna and oscillator] --> ESP[ESP32 measurement and synthesis]
+    Volume[Volume antenna and oscillator] --> ESP
+    ESP --> Filter[DAC output filter and input trim]
+    Filter --> Amplifier[PAM8302A amplifier]
+    Amplifier --> Speaker[Speaker]
+    Browser[Phone or laptop browser] <-->|Local Wi-Fi| ESP
 ```
 
-The diagram shows logical data flow. Oscillator outputs must be buffered,
-0–3.3 V square waves; antenna and LC tank nodes are not GPIO inputs.
-
-## Current capabilities
-
-| Area | Implementation |
+| Function | Current implementation |
 | --- | --- |
-| Sensor inputs | Two independent rising-edge pulse-counter units; nominal 100–300 kHz inputs |
-| Measurement | 10 ms windows using actual elapsed times; filtered control values |
-| Audio | Phase-continuous sine synthesis, nominal 48 kHz sample rate, internal 8-bit DAC |
-| Operating modes | Theremin, measurement only, and fixed test tone |
-| Local interface | ESP32 Wi-Fi access point, live frequencies, validity, and audio targets |
-| Calibration | Four hand-position endpoints, output limits, pitch/volume curves, preview, and NVS save |
+| Sensor inputs | Two buffered 0-3.3 V square waves, nominally 100-300 kHz |
+| Frequency measurement | Two hardware pulse counters sampled every 10 ms |
+| Sound generation | Sine synthesis at nominal 48 kHz through the internal 8-bit DAC |
+| Control interface | Local Wi-Fi dashboard with live frequencies and signal validity |
+| Calibration | Four hand positions, pitch/volume limits, response curves, preview, and flash storage |
+| Firmware platform | ESP-IDF 6.1 on the original ESP32 |
 
-The prototype uses ESP-IDF 6.1. Configuration values cited in this documentation
-describe the current `main/theremin_config.h`; check that file when changing pins,
-frequency limits, or audio levels.
+The dashboard reports oscillator measurements and commanded audio pitch/gain.
+Oscilloscope and acoustic measurements establish the actual output behavior.
 
-## Read the documentation
+## Find what you need
 
-- [Hardware and wiring](hardware.md): GPIO assignments and the audio connection.
-- [Firmware and source files](firmware.md): counters, task boundaries, mapping, and file responsibilities.
-- [Web calibration](calibration.md): connect, capture, preview, and save.
-- [Build and verification](testing.md): firmware commands, host checks, and bench procedures.
-- [Editing this book](writing.md): local preview, new chapters, figures, and GitHub Pages setup.
+| Goal | Chapter |
+| --- | --- |
+| Connect the oscillators, amplifier, and speaker | [Hardware and wiring](hardware.md) |
+| Understand tasks, CPU cores, peripherals, queues, and timing | [ESP32 technical architecture](architecture.md) |
+| Locate source files and configuration settings | [Firmware and source files](firmware.md) |
+| Capture hand positions and adjust the playing range | [Web calibration](calibration.md) |
+| Build, flash, and verify the prototype | [Build and verification](testing.md) |
+| Edit chapters and publish this website | [Editing and publishing](writing.md) |
 
-## Scope and evidence
-
-The source implements frequency measurement and audio generation, with no
-microphone or audio-output feedback measurement. The web interface's audio pitch
-and gain are commanded targets. They do not prove that the amplifier or speaker
-is producing sound.
-
-This book documents the implementation and provides reproducible checks. It does
-not claim measured end-to-end latency, acoustic output power, or a calibrated
-distance in centimetres. Record those results in [Build and verification](testing.md)
-when they have been measured on the actual instrument.
+The instrument dashboard is available at **http://192.168.4.1/** while connected
+to the ESP32's **Theremin-Setup** network. This documentation is published through
+GitHub Pages and can also be previewed on a development computer.

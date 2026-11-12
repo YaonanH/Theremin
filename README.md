@@ -6,10 +6,13 @@ Project and binary name: `theremin_project`.
 
 ## Documentation website
 
-The MyST book starts at [docs/index.md](docs/index.md), with chapters for
-hardware, firmware/source files, calibration, and verification. Its configuration
-is [myst.yml](myst.yml), with chapter order in [toc.yml](toc.yml), following the
-[TU Delft starterkit](https://github.com/TUD-JB-OS/starterkit). In PowerShell from this folder:
+The MyST book covers hardware, ESP32 technical architecture, source files,
+calibration, and verification. The architecture chapter explains tasks, CPU
+affinity, queue ownership, timing, audio DMA, and flash storage.
+[Documentation home](docs/index.md) · [ESP32 technical architecture](docs/architecture.md)
+
+Book configuration is in `myst.yml` and chapter order is in `toc.yml`, following
+the TU Delft starterkit. Start a local preview from this folder.
 
 ```powershell
 .\docs.cmd install
@@ -20,9 +23,8 @@ Open the local address printed in the terminal, usually http://localhost:3000.
 The wrapper uses an installed Node.js/npm or the optional project-local runtime.
 Run `.\docs.cmd build` to generate strictly checked HTML in `_build/html/`.
 The first build/preview downloads the theme and needs internet access.
-See [Editing and publishing this book](docs/writing.md) for equivalent npm commands,
-adding pages/figures, and GitHub Pages setup. Documentation builds are separate
-from ESP-IDF and do not flash or change the instrument.
+The editing guide covers equivalent npm commands, adding chapters and figures,
+and GitHub Pages setup. [Editing and publishing](docs/writing.md)
 
 The included [deployment workflow](.github/workflows/deploy.yml) adapts TU Delft's
 Pages publishing approach, using the same locked MyST version as local builds.

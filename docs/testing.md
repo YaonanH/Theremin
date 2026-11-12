@@ -1,87 +1,91 @@
 # Build and verification
 
-## Build and flash the firmware
+## Build and flash
 
-Use an ESP-IDF 6.1 terminal configured for this project and the original ESP32:
+Open an ESP-IDF 6.1 terminal in the project folder and run the following commands.
 
 ```powershell
 idf.py build
 idf.py -p COM5 flash monitor
 ```
 
-Replace `COM5` with the connected board's port. Exit the serial monitor with
-Ctrl+]. Running only `idf.py monitor` does not update firmware already on the board.
+Replace `COM5` with the board's port. Exit the serial monitor with Ctrl+]. After
+changing `main/theremin_config.h`, rebuild and flash to apply the settings to the
+board. `idf.py monitor` opens the serial connection to the installed firmware.
 
-Change `THEREMIN_MODE` in `main/theremin_config.h`, then rebuild and flash for each
-mode-specific bench check.
+## Bench checks
 
-## Portable host checks
+Start with the amplifier input trim low. Select the required `THEREMIN_MODE`,
+rebuild, and flash for each mode-specific check. Follow the connection diagram
+when wiring the bench setup. [Hardware and wiring](hardware.md)
 
-The portable C tests require a host C compiler with C11 and the math library.
-The commands below are for GCC/Clang-style toolchains; create `build/` first if it
-does not exist. Execute each resulting program after compiling it.
+| Check | Procedure | Expected observation |
+| --- | --- | --- |
+| Frequency measurement | Select measurement-only mode and apply known square waves | Both channels show valid frequencies and windows near 10000 us, with zero audio gain |
+| Audio output | Select test-tone mode | A tone at the configured 240 Hz and gain 0.01 is audible through the connected output path |
+| Independent controls | Select theremin mode and vary one input at a time | Pitch and volume respond to their respective inputs |
+| Invalid input | Disconnect a sensor input with an external pull-down fitted | The reading becomes invalid and theremin audio fades to silence |
+| Capture and Preview | Capture all four endpoints and select Preview | The draft limits and curves govern theremin playback |
+| Cancel | Cancel a draft with altered settings | The previous saved mapping is restored |
+| Save and restart | Save a complete draft and reset the ESP32 | The saved profile is loaded at startup |
+| Save pause | Observe audio and readings during Save | Audio pauses for storage and measurement resumes with fresh baselines |
 
-```text
-cc -std=c11 -Imain main/web_status.c tests/test_web_status.c -lm -o build/test_web_status
-cc -std=c11 -Imain main/calibration_model.c main/calibration_protocol.c main/web_status.c tests/test_calibration.c -lm -o build/test_calibration
-```
+With a nominal 10 ms window, 100/200/300 kHz inputs produce approximately
+1000/2000/3000 rising edges. With the configured fallback profile, those pitch
+frequencies map to approximately 130.8/523.3/2093.0 Hz. The same volume inputs map
+to `AUDIO_MAX_GAIN`, one quarter of that gain, and zero.
 
-On PowerShell with Windows executables, run:
+The serial log and dashboard show input measurements and commanded audio
+targets. Use an oscilloscope or audio measurement setup to verify the DAC,
+amplifier, and acoustic output.
+
+## Host checks
+
+Portable C checks cover calculation, validation, and state handling. JavaScript
+checks execute the actual dashboard/calibration scripts with simulated requests
+and readings.
+
+| Test | Coverage |
+| --- | --- |
+| `tests/test_web_status.c` | Waiting, valid, invalid, stale, nonfinite, timestamp, and buffer-bound cases |
+| `tests/test_calibration.c` | Electrical directions, curves, clamping, captures, sessions, preview, save outcomes, and command parsing |
+| `tests/test_dashboard.mjs` | Polling, readings, disconnection, reconnection, and request scheduling |
+| `tests/test_calibration_page.mjs` | Draft fields, capture dialog, cancellation/retry, lost replies, editor ownership, preview, and save |
+
+For a Windows GCC-compatible host compiler, create the output folder, compile,
+and run the tests from the project root.
 
 ```powershell
+New-Item -ItemType Directory -Path build -Force | Out-Null
+cc -std=c11 -Imain main/web_status.c tests/test_web_status.c -lm -o build/test_web_status.exe
+cc -std=c11 -Imain main/calibration_model.c main/calibration_protocol.c main/web_status.c tests/test_calibration.c -lm -o build/test_calibration.exe
 .\build\test_web_status.exe
 .\build\test_calibration.exe
 ```
 
-Run the browser-script tests with Node.js:
+Run the page-script checks in a terminal with Node.js on PATH.
 
 ```powershell
 node tests/test_dashboard.mjs
 node tests/test_calibration_page.mjs
 ```
 
-| Check | Coverage |
-| --- | --- |
-| `test_web_status.c` | Waiting/valid/invalid/stale readings, nonfinite values, timestamp handling, and buffer bounds |
-| `test_calibration.c` | Electrical direction, clamping, curves, output limits, captures, ownership, expiry, preview/cancel, save outcomes, and form parsing |
-| `test_dashboard.mjs` | Actual dashboard script with simulated data, disconnection/reconnection, and request scheduling |
-| `test_calibration_page.mjs` | Actual calibration script, capture dialog, retry/cancellation, lost replies, draft fields, preview/save, and editor ownership |
+`tests/lcc_math_compat.c` supplies missing C99 math functions when using MATLAB's
+bundled Windows LCC runtime. Real peripheral operation, flash timing, and audio
+continuity are covered by the bench checks.
 
-`tests/lcc_math_compat.c` is only for MATLAB's bundled Windows LCC runtime, which
-lacks some C99 math symbols. ESP-IDF, GCC, and Clang do not need it. Host checks do
-not exercise real PCNT peripherals, DAC DMA, flash timing, or acoustic output.
+## Record results and limitations
 
-## Bench sequence
+For each hardware test, record the date, firmware revision, relevant settings,
+equipment, input conditions, expected result, and observed result. Include units
+and label values obtained from serial logs, electrical measurements, or acoustic
+measurements.
 
-Start with the amplifier input trim low and the wiring in the
-[hardware guide](hardware.md).
+A 10 ms counting window gives a nominal 100 Hz sensor-frequency step. Practical
+control resolution depends on oscillator stability and antenna frequency swing.
+Filtering, DMA buffering, smoothing, and the analog circuit contribute to the
+measured end-to-end latency.
 
-| Step | Procedure | Expected observation |
-| --- | --- | --- |
-| 1. Counters | Use measurement-only mode with known square-wave inputs | Both channels show their input frequencies, valid signals, and windows near 10000 µs; audio target is muted |
-| 2. Audio path | Use test-tone mode | The current 240 Hz, gain 0.01 command produces a tone if the DAC/filter/amplifier/speaker path is connected |
-| 3. Mapping | Use theremin mode; vary one input while holding the other fixed | Pitch and volume respond independently |
-| 4. Invalid input | Disconnect an input with a ground-defining pull-down | Invalid signal and fade to silence in theremin mode |
-| 5. Calibration | Capture four positions, preview, then cancel | Captures are confirmed and Cancel restores the saved mapping |
-| 6. Persistence | Capture and save, reset the ESP32 | The saved profile is restored after restart |
-| 7. Flash pause | Save while monitoring the instrument | Audio pauses during storage and measurement resumes with fresh baselines |
-
-At a nominal 10 ms window, 100/200/300 kHz inputs produce about 1000/2000/3000
-rising edges. Before a saved calibration overrides defaults, those pitch inputs
-map to approximately 130.8/523.3/2093.0 Hz. The same volume inputs map to
-`AUDIO_MAX_GAIN`, one quarter of that gain, and zero with the quadratic curve.
-
-## Record measured results
-
-Add dated results here as the hardware is tested. Record the firmware revision,
-configuration, instruments, input conditions, expected result, and observed result.
-Keep commanded audio targets separate from oscilloscope or acoustic measurements.
-
-No numerical end-to-end latency or acoustic output measurement is included in
-this starter. Nominal single-window frequency resolution is about 100 Hz; useful
-control resolution also depends on oscillator stability and antenna frequency swing.
-
-Compare readings with the amplifier enabled/disabled and Wi-Fi active/inactive
-if you suspect coupling. The existing README notes amplifier switching near the
-sensor band. Reboot can also cause an analog pop because amplifier shutdown is
-not controlled by the firmware.
+If unexplained coupling appears, compare readings with the amplifier enabled
+and disabled, then with Wi-Fi enabled and disabled. Reboot behavior also depends
+on the analog output circuit and amplifier startup.
